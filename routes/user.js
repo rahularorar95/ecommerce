@@ -1,5 +1,7 @@
 var router=require('express').Router();
 var User=require('../models/user');
+var Cart=require('../models/cart');
+var async=require('async');
 var passport=require('passport');
 var passportConf=require('../config/passport');
 router.get('/login',function(req,res){
@@ -16,13 +18,15 @@ router.post('/login', passport.authenticate('local-login',{
 }));
 
 
-router.get('/profile',function(req,res,next){
+router.get('/profile',passportConf.isAuthenticated ,function(req,res,next){
 
+User
+.findOne({_id:req.user._id})
+.populate('history.item')
+.exec(function(err,foundUser){
+  if(err) return next(err);
 
-  User.findOne({ _id : req.user._id},function(err,user){
-    if(err) return nex(err);
-    else
-    res.render('accounts/profile',{user :user});
+  res.render('accounts/profile',{user:foundUser});
 });
 });
 
@@ -35,6 +39,12 @@ router.get('/signup',function(req,res,next){
 });
 
 router.post('/signup',function(req,res){
+
+
+async.waterfall([
+
+function(callback){
+
   var user=new User();
 
   user.profile.name=req.body.name;
@@ -51,15 +61,33 @@ router.post('/signup',function(req,res){
       user.save(function(err,user){
           if(err)return next(err);
 
-          //logIn is setting cookie and session of user
-          req.logIn(user,function(err){
-            if(err) return next(err);
+          callback(null,user);
 
-            res.redirect('/profile');
-          })
+
+
       });
     }
   });
+
+
+},
+
+
+function(user){
+
+var cart=new Cart();
+cart.owner=user._id;
+cart.save(function(err){
+  if(err) return next(err);
+
+  //logIn is setting cookie and session of user
+  req.logIn(user,function(err){
+    if(err) return next(err);
+    res.redirect('/profile');
+  });
+});
+}
+]);
 });
 
 

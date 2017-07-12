@@ -2,16 +2,26 @@
 
 <div class="jumbotron" id="navbar-gap">
   <div class="container">
-  <h1><b> Shop Smart , Save Big</b></h1>
-    <p> Find your Favourite Product</p>
-    <!-- <p><a class="btn btn-primary btn-lg" href="#" role="button">Signup &raquo;</a></p> -->
+  <h1 class="text-center"><b> Shop Smart , Save Big</b></h1>
+    <p class="text-center"> Find your favourite product here</p>
+    <div class="row">
+      <div class="col-md-6 col-md-offset-3">
+        <div class="input-group col-md-12">
+          <span class="input-group-btn">
+          <input id="search" type="text" class="form-control input-lg" name="search_term" placeholder="Search for a product...">
+          <button type="submit" class="btn btn-primary btn-lg"><span class="glyphicon glyphicon-search" aria-hidden="true"></span> </button>
+        </div>
+      </span>
+      </div>
+
+    </div>
   </div>
 </div>
 
 
 
 <div class="container">
-<div class="row">
+<div id="search-results" class="row">
 
 <% for (var i=0;i<products.length;i++) { %>
 <div class="col-md-4">

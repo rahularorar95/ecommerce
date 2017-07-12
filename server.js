@@ -10,12 +10,13 @@ var flash=require('express-flash');
 var mongoStore=require('connect-mongo/es5')(session);
 var passport=require('passport');
 
-var app=express();
+
 var secret=require('./config/secret');
 var User=require('./models/user');
-
-
 var Category=require('./models/category');
+var cartLength=require('./middleware/middleware');
+
+var app=express();
 
 mongoose.connect(secret.database,function(err){
   if(err){
@@ -46,6 +47,8 @@ app.use(function(req,res,next){
   res.locals.user=req.user;
   next();
 });
+
+app.use(cartLength);
 
 app.use(function(req,res,next){
   Category.find({},function(err,categories){

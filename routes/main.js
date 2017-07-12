@@ -1,6 +1,10 @@
 var router=require('express').Router();
 var User=require('../models/user');
 var Product=require('../models/product');
+var Cart=require('../models/cart');
+var stripe=require('stripe') ('sk_test_7H4QFcPo5SQQTUW0V404VP7g');
+var async=require('async');
+
 function paginate(req,res,next){
   var perPage=9;
   var page=req.params.page;
@@ -47,6 +51,50 @@ stream.on('close',function(){
 
 stream.on('error',function(){
   console.log(err);
+});
+
+
+router.post('/product/:product_id',function(req,res,next){
+  Cart.findOne({owner:req.user._id},function(err,cart){
+    cart.items.push({
+      item:req.body.product_id,
+      quantity:parseInt(req.body.quantity),
+      price:parseFloat(req.body.priceValue)
+
+    });
+    cart.total=(cart.total+parseFloat(req.body.priceValue)).toFixed(2);
+    cart.save(function(err){
+      if(err) return next(err);
+      return res.redirect('/cart');
+    });
+  });
+});
+
+
+router.post('/remove',function(req,res,next){
+  Cart.findOne({owner :req.user._id},function(err,foundCart){
+    foundCart.items.pull(String(req.body.item));
+    foundCart.total=(foundCart.total-parseFloat(req.body.price)).toFixed(2);
+    foundCart.save(function(err,found){
+      if(err)return next(err);
+      req.flash('remove','Successfully removed');
+      return res.redirect('/cart');
+    });
+  });
+});
+
+
+router.get('/cart',function(req,res,next){
+  Cart
+  .findOne({owner:req.user._id})
+  .populate('items.item')
+  .exec(function(err,foundCart){
+    if(err) return next(err);
+    res.render('main/cart',{
+      foundCart:foundCart,
+      message:req.flash('remove')
+    });
+  });
 });
 
 
@@ -113,4 +161,62 @@ router.get('/product/:id',function(req,res,next){
     });
   });
 });
+
+router.post('/payment',function(req,res,next){
+
+// var stripeToken=req.body.stripeToken;
+// var currentCharges= (req.body.stripeMoney);
+// stripe.customers.create[{
+//   source:stripeToken,
+// }].then(function(customer){
+//   return stripe.charges.create[{
+//     amount:currentCharges,
+//     currency :'usd',
+//     customer:customer.id
+//   }];
+// });
+
+async.waterfall([
+
+function(callback){
+  Cart.findOne({owner:req.user._id},function(err,cart){
+    callback(err,cart);
+  });
+},
+
+
+function(cart,callback){
+
+User.findOne({_id:req.user._id },function(err,user){
+
+  if(user){
+    for(var i=0;i<cart.items.length;i++){
+        user.history.push({
+        item:cart.items[i].item,
+        paid:cart.items[i].price
+      });
+    }
+
+    user.save(function(err,user){
+      if(err) return next(err);
+      callback(err,user);
+    });
+  }
+});
+
+},
+
+function(user){
+  Cart.update({owner:user._id},{$set :{items :[],total:0 }},function(err,update){
+    if(update){
+      res.redirect('/profile');
+    }
+  });
+
+}
+
+]);
+
+});
+
 module.exports=router;

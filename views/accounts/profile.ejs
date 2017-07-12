@@ -3,6 +3,8 @@
 
 <div class="row">
 <div class="col-sm-6 col-md-4">
+
+
 <img src="<%= user.profile.picture %>" class="img-circle img-center img-responsive">
 <br/>
 
@@ -16,6 +18,30 @@
 <p>Address : <%= user.address %></p>
 <% } %>
 <a href="/edit-profile" class="btn btn-primary btn-lg ">Edit Profile</a>
+</div>
+
+<div class="col-md-6">
+<h2 class="text-center">History</h2>
+
+<table class="table table-striped sticky-header">
+<thead>
+<tr>
+<th>Item's Name</th>
+<th>Paid: </th>
+</tr>
+<tbody>
+
+<%for (var i=0;i<user.history.length ;i++ ) { %>
+  <tr>
+    <td><%= user.history[i].item.name %></td>
+    <td><%= user.history[i].paid %></td>
+  </tr>
+<% } %>
+</tbody>
+</thead>
+
+</table>
+
 </div>
 </div>
 </div>

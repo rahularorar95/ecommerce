@@ -16,9 +16,8 @@ var UserSchema=new mongoose.Schema({
   },
   address:{type:String, default: ""},
   history:[{
-    date: Date,
     paid: {type: Number, default:0},
-  //  item:{type: mongoose.Schema.Types.ObjectId, ref:''}
+    item:{type: Schema.Types.ObjectId, ref:'Product'}
   }]
 
 });
@@ -54,9 +53,9 @@ UserSchema.methods.comparePassword=function(password){
 UserSchema.methods.gravatar=function(size){
   if(!this.size)size=200;
 
-  if(!this.email) return 'https://gravatar.com/avatar/?s'+size+'&d=wavatar';
+  if(!this.email) return 'https://gravatar.com/avatar/?s'+size+'&d=identicon';
   var md5=crypto.createHash('md5').update(this.email).digest('hex');
-  return 'https://gravatar.com/avatar/'+md5+'?s='+size+'&d=wavatar';
+  return 'https://gravatar.com/avatar/'+md5+'?s='+size+'&d=identicon';
 }
 
 module.exports=mongoose.model('User',UserSchema);
